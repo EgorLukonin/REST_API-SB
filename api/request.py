@@ -22,3 +22,15 @@ class RequestsResource(Resource):
             abort(404, error=f"No request with id = {request_id}")
         else:
             return jsonify({"request": request.to_dict()})
+
+    def delete(self, request_id):
+        session = create_session()
+        request = session.query(Requests).get(request_id)
+        if not request:
+            abort(404, error=f"No request with id = {request_id}")
+        else:
+            session.delete(request)
+            session.commit()
+            resp = {"status_code": 200}
+            return jsonify(resp)
+

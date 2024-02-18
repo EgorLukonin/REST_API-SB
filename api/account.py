@@ -22,3 +22,14 @@ class AccountsResource(Resource):
             abort(404, error=f"No account with id = {account_id}")
         else:
             return jsonify({"account": account.to_dict()})
+
+    def delete(self, account_id):
+        session = create_session()
+        account = session.query(Accounts).get(account_id)
+        if not account:
+            abort(404, error=f"No account with id = {account_id}")
+        else:
+            session.delete(account_id)
+            session.commit()
+            resp = {"status_code": 200}
+            return jsonify(resp)

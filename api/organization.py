@@ -22,3 +22,14 @@ class OrganizationsResource(Resource):
             abort(404, error=f"No organization with id = {organization_id}")
         else:
             return jsonify({"organization": organization.to_dict()})
+
+    def delete(self, organization_id):
+        session = create_session()
+        organization = session.query(Organizations).get(organization_id)
+        if not organization:
+            abort(404, error=f"No organization with id = {organization_id}")
+        else:
+            session.delete(organization)
+            session.commit()
+            resp = {"status_code": 200}
+            return jsonify(resp)
