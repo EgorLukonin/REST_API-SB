@@ -13,5 +13,3 @@ class Accounts(SqlAlchemyBase, SerializerMixin):
     INN = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     BIK = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     balance = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    company = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
-

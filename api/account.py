@@ -1,5 +1,6 @@
 from flask import jsonify
-from flask_restful import Resource, abort
+from flask_restful import Resource, abort, reqparse
+from sqlalchemy import exc
 
 from data.db_session import create_session
 from data.models.accounts import Accounts
@@ -7,10 +8,35 @@ from data.models.accounts import Accounts
 
 class AccountsListResource(Resource):
 
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        interface = ["full_name", "account_number", "contract_number", "INN", "BIK", "balance"]
+        for key in interface:
+            self.parser.add_argument(f"{key}")
+
     def get(self):
         session = create_session()
         accounts = session.query(Accounts).all()
         return jsonify({"accounts": list(map(Accounts.to_dict, accounts))})
+
+    def post(self):
+        args = self.parser.parse_args()
+        session = create_session()
+        try:
+            account = Accounts(
+                full_name=args["full_name"],
+                account_number=args["account_number"],
+                contract_number=args["contract_number"],
+                INN=args["INN"],
+                BIK=args["BIK"],
+                balance=args["balance"]
+            )
+            session.add(account)
+            session.commit()
+            resp = {"status_code": 200}
+            return jsonify(resp)
+        except exc.IntegrityError:
+            abort(404, error="Insufficient or incorrectly passed arguments (expected 5)")
 
 
 class AccountsResource(Resource):
