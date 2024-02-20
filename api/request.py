@@ -5,6 +5,8 @@ from sqlalchemy import exc
 from data.db_session import create_session
 from data.models.requests import Requests
 
+from .utilits.check_void import check_void
+
 
 class RequestsListResource(Resource):
 
@@ -38,6 +40,12 @@ class RequestsListResource(Resource):
 
 class RequestsResource(Resource):
 
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        interface = ["type", "status", "account"]
+        for key in interface:
+            self.parser.add_argument(f"{key}")
+
     def get(self, request_id):
         session = create_session()
         request = session.query(Requests).get(request_id)
@@ -56,3 +64,23 @@ class RequestsResource(Resource):
             session.commit()
             resp = {"status_code": 200}
             return jsonify(resp)
+
+    def put(self, request_id):
+        session = create_session()
+        request = session.query(Requests).get(request_id)
+        if not request:
+            abort(404, error=f"No request with id = {request_id}")
+        else:
+            args = self.parser.parse_args()
+            values = list(args.values())
+            if len(set(values)) == 1:
+                abort(404, error="Insufficient arguments (expected 3)")
+            else:
+                args = check_void(args)
+                request.type = args["type"] if "type" in args else request.type
+                request.status = args["status"] if "status" in args else request.status
+                request.account = args["account"] if "account" in args else request.account
+                session.commit()
+                resp = {"status_code": 200}
+                return jsonify(resp)
+

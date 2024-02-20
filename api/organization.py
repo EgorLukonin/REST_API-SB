@@ -5,6 +5,8 @@ from sqlalchemy import exc
 from data.db_session import create_session
 from data.models.organizations import Organizations
 
+from .utilits.check_void import check_void
+
 
 class OrganizationsListResource(Resource):
 
@@ -40,6 +42,12 @@ class OrganizationsListResource(Resource):
 
 class OrganizationsResource(Resource):
 
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        interface = ["abbreviated_name", "full_name", "address", "OKATO", "OGRN"]
+        for key in interface:
+            self.parser.add_argument(f"{key}")
+
     def get(self, organization_id):
         session = create_session()
         organization = session.query(Organizations).get(organization_id)
@@ -58,3 +66,24 @@ class OrganizationsResource(Resource):
             session.commit()
             resp = {"status_code": 200}
             return jsonify(resp)
+
+    def put(self, organization_id):
+        session = create_session()
+        organization = session.query(Organizations).get(organization_id)
+        if not organization:
+            abort(404, error=f"No organization with id = {organization_id}")
+        else:
+            args = self.parser.parse_args()
+            values = list(args.values())
+            if len(set(values)) == 1:
+                abort(404, error="Insufficient arguments (expected 5)")
+            else:
+                args = check_void(args)
+                organization.abbreviated_name = args["abbreviated_name"] if "abbreviated_name" in args else organization.abbreviated_name
+                organization.full_name = args["full_name"] if "full_name" in args else organization.full_name
+                organization.address = args["address"] if "address" in args else organization.address
+                organization.OKATO = args["OKATO"] if "OKATO" in args else organization.OKATO
+                organization.OGRN = args["OGRN"] if "OGRN" in args else organization.OGRN
+                session.commit()
+                resp = {"status_code": 200}
+                return jsonify(resp)
