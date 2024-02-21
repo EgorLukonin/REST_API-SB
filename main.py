@@ -26,4 +26,4 @@ if __name__ == '__main__':
     api.add_resource(OrganizationsResource, "/api/organizations/<int:organization_id>")
     api.add_resource(AccountsListResource, "/api/accounts/")
     api.add_resource(AccountsResource, "/api/accounts/<int:account_id>")
-    app.run(debug=True, port=3000, host="127.0.0.1")
+    app.run(debug=False, port=3000, host="127.0.0.1")
