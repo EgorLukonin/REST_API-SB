@@ -1,11 +1,11 @@
 from flask import jsonify
-from flask_restful import Resource, abort, reqparse
+from flask_restful import Resource, reqparse
 from sqlalchemy import exc
 
 from data.db_session import create_session
 from data.models.organizations import Organizations
 
-from .utilits.check_void import check_void
+from utilits.check_condition import check_void, check_len_str, check_len_number
 
 
 class OrganizationsListResource(Resource):
@@ -25,6 +25,16 @@ class OrganizationsListResource(Resource):
         args = self.parser.parse_args()
         session = create_session()
         try:
+            check_args = [check_len_str("abbreviated_name", args["abbreviated_name"]),
+                          check_len_str("full_name", args["full_name"]),
+                          check_len_str("address", args["address"]),
+                          check_len_number("OKATO", args["OKATO"], 11),
+                          check_len_number("OGRN", args["OGRN"], 13)
+                          ]
+            for value in check_args:
+                if isinstance(value, bool) is False:
+                    return jsonify({"error": value})
+
             organization = Organizations(
                 abbreviated_name=args["abbreviated_name"],
                 full_name=args["full_name"],
@@ -37,7 +47,7 @@ class OrganizationsListResource(Resource):
             resp = {"status_code": 200}
             return jsonify(resp)
         except exc.IntegrityError:
-            abort(404, error="Insufficient or incorrectly passed arguments (expected 5)")
+            return jsonify({"error": "Insufficient or incorrectly passed arguments (expected 5)"})
 
 
 class OrganizationsResource(Resource):
@@ -52,7 +62,7 @@ class OrganizationsResource(Resource):
         session = create_session()
         organization = session.query(Organizations).get(organization_id)
         if not organization:
-            abort(404, error=f"No organization with id = {organization_id}")
+            return jsonify({"error": f"No organization with id = {organization_id}"})
         else:
             return jsonify({"organization": organization.to_dict()})
 
@@ -60,7 +70,7 @@ class OrganizationsResource(Resource):
         session = create_session()
         organization = session.query(Organizations).get(organization_id)
         if not organization:
-            abort(404, error=f"No organization with id = {organization_id}")
+            return jsonify({"error": f"No organization with id = {organization_id}"})
         else:
             session.delete(organization)
             session.commit()
@@ -71,12 +81,12 @@ class OrganizationsResource(Resource):
         session = create_session()
         organization = session.query(Organizations).get(organization_id)
         if not organization:
-            abort(404, error=f"No organization with id = {organization_id}")
+            return jsonify({"error": f"No organization with id = {organization_id}"})
         else:
             args = self.parser.parse_args()
             values = list(args.values())
             if len(set(values)) == 1:
-                abort(404, error="Insufficient arguments (expected 5)")
+                return jsonify({"error": "Insufficient arguments (expected 5)"})
             else:
                 args = check_void(args)
                 organization.abbreviated_name = args["abbreviated_name"] if "abbreviated_name" in args else organization.abbreviated_name
