@@ -5,7 +5,7 @@ from sqlalchemy import exc
 from data.db_session import create_session
 from data.models.organizations import Organizations
 
-from utilits.check_condition import check_void, check_len_str, check_len_number
+from .check_condition import check_void, check_len_str, check_len_number
 
 
 class OrganizationsListResource(Resource):
