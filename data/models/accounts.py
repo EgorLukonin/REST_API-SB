@@ -8,7 +8,7 @@ class Accounts(SqlAlchemyBase, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     full_name = sqlalchemy.Column(sqlalchemy.Text(60), nullable=True)
-    account_number = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    account_number = sqlalchemy.Column(sqlalchemy.Text(20), nullable=False)
     contract_number = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     INN = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     BIK = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)

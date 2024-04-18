@@ -25,8 +25,8 @@ class AccountsListResource(Resource):
         args = self.parser.parse_args()
         session = create_session()
         try:
-            check_args = [check_len_str("full_name", args["full_name"], 3),
-                          check_len_number("account_number", args["account_number"], 20),
+            check_args = [check_len_str("full_name", args["full_name"]),
+                          check_len_number("account_number", int(args["account_number"]), 20),
                           check_len_number("contract_number", args["contract_number"], 10),
                           check_len_number("INN", args["INN"], 10),
                           check_len_number("BIK", args["BIK"], 9)
@@ -40,14 +40,14 @@ class AccountsListResource(Resource):
                 contract_number=args["contract_number"],
                 INN=args["INN"],
                 BIK=args["BIK"],
-                balance=args["balance"]
+                balance=0
             )
             session.add(account)
             session.commit()
             resp = {"status_code": 200}
             return jsonify(resp)
         except exc.IntegrityError:
-           return jsonify({"error": "Insufficient or incorrectly passed arguments (expected 6)"})
+            return jsonify({"error": "Insufficient or incorrectly passed arguments (expected 6)"})
 
 
 class AccountsResource(Resource):
@@ -68,11 +68,14 @@ class AccountsResource(Resource):
 
     def delete(self, account_id):
         session = create_session()
-        account = session.query(Accounts).get(account_id)
+        account = session.query(Accounts).all()
         if not account:
             return jsonify({"error": f"No account with id = {account_id}"})
         else:
-            session.delete(account_id)
+            for item in account:
+                if item.id == account_id:
+                    session.delete(item)
+                    break
             session.commit()
             resp = {"status_code": 200}
             return jsonify(resp)
